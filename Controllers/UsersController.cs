@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TinyUrlClone.Data;
 using TinyUrlClone.Models;
+using TinyUrlClone.Services;
 
 namespace TinyUrlClone.Controllers
 {
@@ -14,40 +15,31 @@ namespace TinyUrlClone.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
-        private readonly ApiDbContext _context;
+        
+        private readonly UserService _userService;
 
-        public UsersController(ApiDbContext context)
+        public UsersController(UserService userService)
         {
-            _context = context;
+            _userService = userService;
         }
+
+
 
         // GET: api/Users
         [HttpGet]
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
-          if (_context.Users == null)
-          {
-              return NotFound();
-          }
-            return await _context.Users.ToListAsync();
+            IList<User> users = await _userService.GetUsersAsync();
+            return Ok(users);
         }
 
         // GET: api/Users/5
         [HttpGet("{id}")]
         public async Task<ActionResult<User>> GetUser(Guid id)
         {
-          if (_context.Users == null)
-          {
-              return NotFound();
-          }
-            var user = await _context.Users.FindAsync(id);
+            User user = await _userService.GetUserByIdAsync(id);
+            return Ok(user);
 
-            if (user == null)
-            {
-                return NotFound();
-            }
-
-            return user;
         }
 
         // PUT: api/Users/5
@@ -60,23 +52,7 @@ namespace TinyUrlClone.Controllers
                 return BadRequest();
             }
 
-            _context.Entry(user).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!UserExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            _userService.UpdateUser(user, id);
 
             return NoContent();
         }
@@ -86,12 +62,7 @@ namespace TinyUrlClone.Controllers
         [HttpPost]
         public async Task<ActionResult<User>> PostUser(User user)
         {
-          if (_context.Users == null)
-          {
-              return Problem("Entity set 'ApiDbContext.Users'  is null.");
-          }
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
+            await _userService.CreateUserAsync(user);
 
             return CreatedAtAction("GetUser", new { id = user.Id }, user);
         }
@@ -100,25 +71,11 @@ namespace TinyUrlClone.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(Guid id)
         {
-            if (_context.Users == null)
-            {
-                return NotFound();
-            }
-            var user = await _context.Users.FindAsync(id);
-            if (user == null)
-            {
-                return NotFound();
-            }
 
-            _context.Users.Remove(user);
-            await _context.SaveChangesAsync();
-
+            await _userService.DeleteUser(id);
             return NoContent();
         }
 
-        private bool UserExists(Guid id)
-        {
-            return (_context.Users?.Any(e => e.Id == id)).GetValueOrDefault();
-        }
+       
     }
 }
