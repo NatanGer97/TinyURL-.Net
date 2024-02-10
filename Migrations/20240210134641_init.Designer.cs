@@ -12,8 +12,8 @@ using TinyUrlClone.Data;
 namespace TinyUrlClone.Migrations
 {
     [DbContext(typeof(ApiDbContext))]
-    [Migration("20240210122157_withDbColsConfig1")]
-    partial class withDbColsConfig1
+    [Migration("20240210134641_init")]
+    partial class init
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {

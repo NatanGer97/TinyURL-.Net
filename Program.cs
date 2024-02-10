@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using TinyUrlClone.Data;
+using TinyUrlClone.Repositories.User;
+using TinyUrlClone.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +16,9 @@ builder.Services.AddDbContext<ApiDbContext>(options =>
 {
     options.UseNpgsql(builder.Configuration.GetConnectionString("PostgreSqlConnection"));
 });
+
+builder.Services.AddScoped<UserRepository>();
+builder.Services.AddScoped<UserService>();
 
 var app = builder.Build();
 
